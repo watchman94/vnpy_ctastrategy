@@ -15,6 +15,7 @@ class DoubleMaStrategy(CtaTemplate):
 
     fast_window = 10
     slow_window = 20
+    quote_sz = 0   #add quote size for open and flat position
 
     fast_ma0 = 0.0
     fast_ma1 = 0.0
@@ -22,7 +23,7 @@ class DoubleMaStrategy(CtaTemplate):
     slow_ma0 = 0.0
     slow_ma1 = 0.0
 
-    parameters = ["fast_window", "slow_window"]
+    parameters = ["fast_window", "slow_window", "quote_sz"]
     variables = ["fast_ma0", "fast_ma1", "slow_ma0", "slow_ma1"]
 
     def __init__(self, cta_engine, strategy_name, vt_symbol, setting):
@@ -83,17 +84,23 @@ class DoubleMaStrategy(CtaTemplate):
 
         if cross_over:
             if self.pos == 0:
-                self.buy(bar.close_price, 1)
+                self.write_log("open long, price:{}, size:{}".format(bar.close_price, self.quote_sz))
+                self.buy(bar.close_price, self.quote_sz)
             elif self.pos < 0:
-                self.cover(bar.close_price, 1)
-                self.buy(bar.close_price, 1)
+                self.write_log("flat short, price:{}, size:{}".format(bar.close_price, self.quote_sz))
+                self.cover(bar.close_price, self.quote_sz)
+                self.write_log("open long, price:{}, size:{}".format(bar.close_price, self.quote_sz))
+                self.buy(bar.close_price, self.quote_sz)
 
         elif cross_below:
             if self.pos == 0:
-                self.short(bar.close_price, 1)
+                self.write_log("open short, price:{}, size:{}".format(bar.close_price, self.quote_sz))
+                self.short(bar.close_price, self.quote_sz)
             elif self.pos > 0:
-                self.sell(bar.close_price, 1)
-                self.short(bar.close_price, 1)
+                self.write_log("flat long, price:{}, size:{}".format(bar.close_price, self.quote_sz))
+                self.sell(bar.close_price, self.quote_sz)
+                self.write_log("open short, price:{}, size:{}".format(bar.close_price, self.quote_sz))
+                self.short(bar.close_price, self.quote_sz)
 
         self.put_event()
 
